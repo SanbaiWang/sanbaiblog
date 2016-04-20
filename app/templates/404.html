@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        h1{background-color: grey}
+    </style>
+
+{% endblock %}
+
+{% block title %}Flasky - Page Not Found{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <link ref="flask icon", href="{{ url_for('static', filename='favicon.ico') }}" type="image/x_icon">
+    <h1>Not Found</h1>
+</div>
+{% endblock %}
