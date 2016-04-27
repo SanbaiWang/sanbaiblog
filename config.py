@@ -1,6 +1,5 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
-# the attribute dirname() returns the head part(dir name) of a path
 
 
 class Config(object):
@@ -20,6 +19,7 @@ class Config(object):
     SQLALCHEMY_RECORD_QUERIES = True
     FLASKY_DB_QUERY_TIMEOUT = 0.5
     FLASKY_SLOW_DB_QUERY_TIME = 0.5
+    SSL_DISABLE = True
 
     @staticmethod
     def init_app(app):
@@ -67,10 +67,29 @@ class ProductionConfig(Config):
         app.logger.addHandler(mail_handler)
 
 
+class HerokuConfig(ProductionConfig):
+    SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
+
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        # handle proxy server headers
+        from werkzeug.contrib.fixers import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app)
+
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.WARNING)
+        app.logger.addHandler(file_handler)
+
+
 config = {
     'development': DevelopmentConfig,
     'testing': TestConfig,
     'Production': ProductionConfig,
-    'default': DevelopmentConfig
+    'heroku': HerokuConfig,
+    'default': DevelopmentConfig,
 }
 
