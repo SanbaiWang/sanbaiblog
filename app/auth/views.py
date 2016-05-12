@@ -1,3 +1,5 @@
+# *--- encoding = utf-8 ---*
+
 from flask import render_template, redirect, request, flash, url_for
 from flask.ext.login import login_user, logout_user, login_required, current_user
 from . import auth
@@ -16,7 +18,7 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(url_for('main.index'))
-        flash('Invalid username or password.')
+        flash('用户名或密码错误')
     return render_template('auth/login.html', form=form)
 
 
@@ -24,7 +26,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.')
+    flash('你已经退出登陆')
     return redirect(url_for('main.index'))
 
 
@@ -38,9 +40,9 @@ def register():
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
-        send_email(user.email, 'Confirm Youe Account',
+        send_email(user.email, '激活你的账户',
                    'auth/email/confirm', user=user, token=token)
-        flash("A confirmation email has beenn sent to you by email")
+        flash("一封还有激活链接的邮件已经发往你的注册邮箱")
         return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
 
@@ -51,9 +53,9 @@ def confirm(token):
     if current_user.confirmed:  # User obj has been loaded in route /login
         return redirect(url_for('main.index'))
     if current_user.confirm(token):
-        flash('You have confirmed your account. Thanks!')
+        flash('你的账户已经激活')
     else:
-        flash('The confirmation link is invalid or expired.')
+        flash('激活链接无效或已过期')
     return redirect(url_for('main.index'))
 
 
@@ -78,9 +80,9 @@ def unconfirmed():
 @login_required
 def resend_confirmation():
     token = current_user.generate_confirmation_token()
-    send_email(current_user.email, 'Confrim Your Account',
+    send_email(current_user.email, '激活你的账户',
                'auth/email/confirm', user=current_user, token=token)
-    flash('A new confirmation email ha been sent to you by email.')
+    flash('一封新的激活邮件已发往你的注册邮箱')
     return redirect(url_for('main.index'))
 
 
@@ -92,10 +94,10 @@ def change_password():
         if current_user.verify_password(form.old_password.data):
             current_user.password = form.new_password.data
             db.session.add(current_user)
-            flash('You have changed your password.')
+            flash('密码已更新')
             return redirect(url_for('main.index'))
         else:
-            flash('Invalid password.')
+            flash('密码错误')
     return render_template("auth/change_password.html", form=form)
 
 
@@ -108,8 +110,8 @@ def reset_password_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             token = user.generate_reset_password_token()
-            send_email(user.email, 'Reset Your Password', 'auth/email/reset-password', user=user, token=token)
-            flash('An email introduces how to reset your password has been sent to you.')
+            send_email(user.email, '重置你的密码', 'auth/email/reset-password', user=user, token=token)
+            flash('一封介绍如何重置密码的邮件已发往你的邮箱')
         return redirect(url_for('auth.login'))
     return render_template("auth/reset_password.html", form=form)
 
@@ -124,9 +126,9 @@ def reset_password(token):
         if user is None:
             return redirect(url_for('main.index'))
         if user.reset_password(token, form.password.data):
-            flash('You have updated your password.')
+            flash('密码已更新')
             return redirect(url_for('auth.login'))
         else:
-            flash('The link is invalid or expired. ')
+            flash('链接无效或者已过期')
             return redirect(url_for('main.index'))
     return render_template('auth/reset_password.html', form=form)
