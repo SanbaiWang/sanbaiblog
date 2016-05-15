@@ -2,12 +2,14 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "_macros.html" as macros %}
 
-
-{% block title %}Flasky{% endblock %}
-
 {% block page_content %}
-<div class="page-header">
-    <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
+<div id="page-header">
+    <h2>
+        {% if current_user.is_authenticated %}欢迎回来, 亲爱的主人 ⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄.
+        {% else %}
+            你好啊, 新来的客人 (｡･ω･)ﾉﾞ
+        {% endif %}
+    </h2>
 </div>
 <div>
     {% if current_user.can(Permission.WRITE_ARTICLES) %}
@@ -18,6 +20,10 @@
 <div class="pagination">
     {{ macros.pagination_widget(pagination, '.index')}}
 </div>
+{% endblock %}
+
+{% block sidebar_content %}
+<h1>啥也没有呀</h1>
 {% endblock %}
 
 {% block scripts %}
