@@ -1,4 +1,5 @@
-# *--- encoding = utf-8 ---*
+
+# coding:utf-8
 
 from flask import render_template, redirect, request, flash, url_for
 from flask.ext.login import login_user, logout_user, login_required, current_user
