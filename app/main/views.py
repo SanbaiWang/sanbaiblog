@@ -1,6 +1,12 @@
 
 # coding:utf-8
 
+import sys
+if sys.getdefaultencoding() != 'utf8':
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+    default_encoding = sys.getdefaultencoding()
+
 from flask import render_template, abort, flash, redirect, url_for, \
     request, current_app, make_response
 from flask.ext.login import login_required, current_user
