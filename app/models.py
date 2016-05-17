@@ -117,6 +117,7 @@ class User(UserMixin, db.Model):
             return False
         self.confirmed = True
         db.session.add(self)
+        db.session.commit()
         return True
 
     def generate_reset_password_token(self, expiration=3600):
@@ -133,6 +134,7 @@ class User(UserMixin, db.Model):
             return False
         self.password = password
         db.session.add(self)
+        db.session.commit()
         return True
 
     def can(self, permissions):
@@ -145,6 +147,7 @@ class User(UserMixin, db.Model):
     def ping(self):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
+        db.session.commit()
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
@@ -172,6 +175,7 @@ class User(UserMixin, db.Model):
                      about_me=forgery_py.lorem_ipsum.sentence(),
                      member_since=forgery_py.date.date(True))
             db.session.add(u)
+            db.session.commit()
             try:
                 db.session.commit()
             except IntegrityError:
@@ -181,6 +185,7 @@ class User(UserMixin, db.Model):
         if not self.is_following(user):
             f = Follow(follower=self, followed=user)
             db.session.add(f)
+            db.session.commit()
 
     def unfollow(self, user):
         f = self.followed.filter_by(followed_id=user.id).first()

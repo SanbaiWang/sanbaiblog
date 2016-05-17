@@ -103,6 +103,7 @@ def change_password():
         if current_user.verify_password(form.old_password.data):
             current_user.password = form.new_password.data
             db.session.add(current_user)
+            db.session.commit()
             flash('密码已更新')
             return redirect(url_for('main.index'))
         else:
