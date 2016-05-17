@@ -1,6 +1,8 @@
 
 # coding:utf-8
 
+# added May 17th 1:33 am, this block solves the problem:
+#   UnicodeDecodeError: 'ascii' codec can't decode byte 0xe9 in position 0: ordinal not in range(128)
 import sys
 if sys.getdefaultencoding() != 'utf8':
     reload(sys)
@@ -49,7 +51,7 @@ def register():
         token = user.generate_confirmation_token()
         send_email(user.email, '激活你的账户',
                    'auth/email/confirm', user=user, token=token)
-        flash("一封还有激活链接的邮件已经发往你的注册邮箱")
+        flash("一封含有激活链接的邮件已经发往你的注册邮箱")
         return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
 
