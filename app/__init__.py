@@ -6,6 +6,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from config import config
 from flask.ext.login import LoginManager
 from flask.ext.pagedown import PageDown
+import flask.ext.whooshalchemyplus as whooshalchemy
 
 bootstrap = Bootstrap()
 mail = Mail()
@@ -29,7 +30,6 @@ def create_app(config_name):
     moment.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
-    pagedown.init_app(app)
 
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask.ext.sslify import SSLify
@@ -44,5 +44,8 @@ def create_app(config_name):
 
     from .api_1_0 import api as api_1_0_blueprint
     app.register_blueprint(api_1_0_blueprint, url_prefix='/api/v1.0')
+
+    from .models import Post
+    whooshalchemy.whoosh_index(app, Post)
 
     return app

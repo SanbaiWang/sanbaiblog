@@ -9,6 +9,8 @@ import hashlib
 from markdown import markdown
 import bleach
 from .exceptions import ValidationError
+import flask.ext.whooshalchemyplus as whooshalchemy
+from jieba.analyse import ChineseAnalyzer
 
 
 class Role(db.Model):
@@ -153,7 +155,7 @@ class User(UserMixin, db.Model):
         if request.is_secure:
             url = 'https://secure.gravatar.com/avatar'
         else:
-            url = 'https://www.gravatar.com/avatar'
+            url = 'https://cn.gravatar.com/avatar'
         hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
@@ -286,6 +288,8 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
+    __searchable__ = ['body']
+    __analyzer__ = ChineseAnalyzer()
 
     @staticmethod
     def generate_fake(count=100):
@@ -369,3 +373,24 @@ class Comment(db.Model):
             tags=allowed_tags, strip=True))
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+
+
+# class Topic(db.Model):
+#     __tablename__ = 'topics'
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(64), unique=True)
+#     posts = db.relationship('Post', backref='topic', lazy='dynamic')
+#
+#     def __repr__(self):
+#         return '<Topic %r>' % self.name
+#
+#     @staticmethod
+#     def insert_topics():
+#         topics = {
+#             'Python', 'Bootstrap', 'Flask', 'JavaScript', 'AJAX', 'HTML', 'CSS', 'JQuery', '杂谈', '读书', '吃喝玩乐'}
+#         for t in topics:
+#             topic = Topic.query.filter_by(name=t).first()
+#             if topic is None:
+#                 topic = Topic(name=t)
+#             db.session.add(topic)
+#         db.session.commit()

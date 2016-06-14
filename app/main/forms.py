@@ -7,6 +7,7 @@ from wtforms.validators import DataRequired, Length, Email, Regexp
 from ..models import User, Role
 from flask.ext.pagedown.fields import PageDownField
 
+
 class NameForm(Form):
     name = StringField("还不知道你的名字呢?", validators=[DataRequired()])
     submit = SubmitField('提交')
@@ -56,3 +57,7 @@ class PostForm(Form):
 class CommentForm(Form):
     body = StringField('', validators=[DataRequired()])
     submit = SubmitField('提交')
+
+
+class SearchForm(Form):
+    search = StringField('Search', validators=[DataRequired()])

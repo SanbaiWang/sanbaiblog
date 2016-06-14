@@ -23,6 +23,7 @@ class Config(object):
     FLASKY_DB_QUERY_TIMEOUT = 0.5
     FLASKY_SLOW_DB_QUERY_TIME = 0.5
     SSL_DISABLE = True
+    MAX_SEARCH_RESULTS = 50
 
     @staticmethod
     def init_app(app):
@@ -45,6 +46,7 @@ class TestConfig(Config):
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+    WHOOSH_BASE = os.path.join(basedir, 'search.db')
 
     @classmethod
     def init_app(cls, app):

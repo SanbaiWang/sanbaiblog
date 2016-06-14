@@ -3,11 +3,6 @@
 
 # added May 17th 1:33 am, this block solves the problem:
 #   UnicodeDecodeError: 'ascii' codec can't decode byte 0xe9 in position 0: ordinal not in range(128)
-import sys
-if sys.getdefaultencoding() != 'utf8':
-    reload(sys)
-    sys.setdefaultencoding('utf8')
-    default_encoding = sys.getdefaultencoding()
 
 from flask import render_template, redirect, request, flash, url_for
 from flask.ext.login import login_user, logout_user, login_required, current_user
@@ -18,17 +13,37 @@ from .forms import LoginForm, RegistrationForm, ChangePasswordForm,\
     ResetPasswordRequestForm, ResetPasswordForm
 from ..email import send_email
 
+import os
+if 'heroku' == os.environ.get('FLASK_COVERAGE'):
+    import sys
+    if sys.getdefaultencoding() != 'utf8':
+        reload(sys)
+        sys.setdefaultencoding('utf8')
+        default_encoding = sys.getdefaultencoding()
+
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user is not None and user.verify_password(form.password.data):
-            login_user(user, form.remember_me.data)
+    loginform = LoginForm()
+    registerform = RegistrationForm()
+    if loginform.validate_on_submit():
+        user = User.query.filter_by(email=loginform.email.data).first()
+        if user is not None and user.verify_password(loginform.password.data):
+            login_user(user, loginform.remember_me.data)
             return redirect(url_for('main.index'))
         flash('用户名或密码错误')
-    return render_template('auth/login.html', form=form)
+    elif registerform.validate_on_submit():
+        user = User(email=registerform.email.data,
+                    username=registerform.username.data,
+                    password=registerform.password.data)
+        db.session.add(user)
+        db.session.commit()
+        token = user.generate_confirmation_token()
+        send_email(user.email, '激活你的账户',
+                   'auth/email/confirm', user=user, token=token)
+        flash("一封含有激活链接的邮件已经发往你的注册邮箱")
+        return redirect(url_for('main.index'))
+    return render_template('auth/login.html', loginform=loginform, registerform=registerform)
 
 
 @auth.route('/logout')
@@ -37,23 +52,6 @@ def logout():
     logout_user()
     flash('主人再见, 要再来哦 (｡･ω･)ﾉﾞ')
     return redirect(url_for('main.index'))
-
-
-@auth.route('/register', methods=['POST', 'GET'])
-def register():
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(email=form.email.data,
-                    username=form.username.data,
-                    password=form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        token = user.generate_confirmation_token()
-        send_email(user.email, '激活你的账户',
-                   'auth/email/confirm', user=user, token=token)
-        flash("一封含有激活链接的邮件已经发往你的注册邮箱")
-        return redirect(url_for('main.index'))
-    return render_template('auth/register.html', form=form)
 
 
 @auth.route('/confirm/<token>')

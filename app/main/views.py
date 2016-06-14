@@ -3,14 +3,9 @@
 
 # added May 17th 1:33 am, this block solves the problem:
 #   UnicodeDecodeError: 'ascii' codec can't decode byte 0xe9 in position 0: ordinal not in range(128)
-import sys
-if sys.getdefaultencoding() != 'utf8':
-    reload(sys)
-    sys.setdefaultencoding('utf8')
-    default_encoding = sys.getdefaultencoding()
 
 from flask import render_template, abort, flash, redirect, url_for, \
-    request, current_app, make_response
+    request, current_app, make_response, g
 from flask.ext.login import login_required, current_user
 from ..decorators import admin_required, permission_required
 from . import main
@@ -18,6 +13,14 @@ from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from .. import db
 from ..models import Permission, User, Role, Post, Comment
 from flask.ext.sqlalchemy import get_debug_queries
+import os
+if 'heroku' == os.environ.get('FLASK_COVERAGE'):
+    import sys
+    if sys.getdefaultencoding() != 'utf8':
+        reload(sys)
+        sys.setdefaultencoding('utf8')
+        default_encoding = sys.getdefaultencoding()
+from .forms import SearchForm
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -248,3 +251,27 @@ def after_request(response):
                 'Slow query %s\nParameters: %s\nDuration: %fs\nContext: %s\n'
                 % (query.statement, query.parameters, query.duration, query.context))
     return response
+
+
+@main.before_app_request
+def before_request():
+    g.user = current_user
+    # if g.user.is_authenticated:
+    #     g.user.ping()
+    g.search_form = SearchForm()
+
+
+@main.route('/search', methods=['POST'])
+# @login_required
+def search():
+    if not g.search_form.validate_on_submit():
+        return redirect(url_for('.index'))
+    return redirect(url_for('.search_results', query=g.search_form.search.data))
+
+
+@main.route('/search-results/<query>')
+# @login_required
+def search_results(query):
+    posts = Post.query.whoosh_search(query, current_app.config['MAX_SEARCH_RESULTS']).all()
+    return render_template('search_results.html', query=query, posts=posts)
+

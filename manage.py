@@ -14,6 +14,7 @@ def make_shell_context():
     """
         this function works as: >>>from *** import app, db, User, Role
     """
+    # return dict(app=app, db=db, User=User, Role=Role, Post=Post, Follow=Follow, Comment=Comment, Topic=Topic)
     return dict(app=app, db=db, User=User, Role=Role, Post=Post, Follow=Follow, Comment=Comment)
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
